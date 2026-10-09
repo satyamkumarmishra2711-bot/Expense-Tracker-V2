@@ -25,6 +25,7 @@ import { UploadModal } from './components/UploadModal';
 import { SheetManagerModal } from './components/SheetManagerModal';
 import { RuleManagerModal } from './components/RuleManagerModal';
 import { EmailSyncModal } from './components/EmailSyncModal';
+import { UnauthorizedDomainModal } from './components/UnauthorizedDomainModal';
 import { searchRecentTransactionEmails, parseEmailsToTransactions, deduplicateTransactions } from './services/gmailSync';
 import {
   getLocalDateString,
@@ -176,6 +177,9 @@ export default function App() {
     return () => unsubscribe();
   }, []);
 
+  const [isUnauthorizedDomainOpen, setIsUnauthorizedDomainOpen] = useState(false);
+  const [unauthorizedDomain, setUnauthorizedDomain] = useState<string>('');
+
   const handleLogin = async () => {
     setIsLoggingIn(true);
     try {
@@ -208,7 +212,19 @@ export default function App() {
       }
     } catch (err: any) {
       console.error('Sign in error:', err);
-      showToast(err.message || 'Google Sign-In failed', 'error');
+      const isUnauthorizedDomain =
+        err?.code === 'auth/unauthorized-domain' ||
+        err?.message?.includes('unauthorized-domain') ||
+        err?.message?.includes('auth/unauthorized-domain');
+
+      if (isUnauthorizedDomain) {
+        const domain = typeof window !== 'undefined' ? window.location.hostname : '';
+        setUnauthorizedDomain(domain);
+        setIsUnauthorizedDomainOpen(true);
+        showToast('Domain not authorized in Firebase: ' + (domain || 'current domain'), 'error');
+      } else {
+        showToast(err.message || 'Google Sign-In failed', 'error');
+      }
     } finally {
       setIsLoggingIn(false);
     }
@@ -860,6 +876,14 @@ export default function App() {
           onSave={handleSaveTransactionEdit}
           onDelete={handleDeleteTransaction}
           isSaving={isSavingEdit}
+        />
+      )}
+
+      {/* Unauthorized Domain Modal */}
+      {isUnauthorizedDomainOpen && (
+        <UnauthorizedDomainModal
+          currentDomain={unauthorizedDomain}
+          onClose={() => setIsUnauthorizedDomainOpen(false)}
         />
       )}
     </div>

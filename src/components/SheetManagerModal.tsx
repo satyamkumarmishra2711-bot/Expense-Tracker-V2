@@ -193,10 +193,44 @@ export const SheetManagerModal: React.FC<SheetManagerModalProps> = ({
         {/* Modal Body */}
         <div className="p-5 overflow-y-auto space-y-4 text-xs">
           {error && (
-            <div className="p-3.5 rounded-2xl bg-rose-500/10 border border-rose-500/30 text-rose-300 flex items-start gap-2.5">
-              <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
-              <div className="flex-1">
-                <p className="font-semibold">{error}</p>
+            <div className={`p-4 rounded-2xl border flex items-start gap-3 ${
+              error.includes('unauthorized-domain')
+                ? 'bg-amber-950/40 border-amber-500/40 text-amber-200'
+                : 'bg-rose-500/10 border-rose-500/30 text-rose-300'
+            }`}>
+              <AlertCircle className={`w-5 h-5 shrink-0 mt-0.5 ${error.includes('unauthorized-domain') ? 'text-amber-400' : 'text-rose-400'}`} />
+              <div className="flex-1 space-y-2 text-xs">
+                <p className="font-semibold text-sm">{error}</p>
+                {error.includes('unauthorized-domain') && (
+                  <div className="bg-slate-950/80 p-3 rounded-xl border border-amber-500/20 space-y-2 mt-1">
+                    <p className="text-slate-300">
+                      Firebase requires domain authorization for Google Sign-In. Add this domain to your Firebase Console:
+                    </p>
+                    <div className="flex items-center gap-2 bg-slate-900 px-2.5 py-1.5 rounded-lg border border-slate-700 text-amber-300 font-mono text-xs">
+                      <span className="truncate">{typeof window !== 'undefined' ? window.location.hostname : 'satyamkumarmishra2711-bot.github.io'}</span>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (typeof window !== 'undefined') {
+                            navigator.clipboard.writeText(window.location.hostname);
+                          }
+                        }}
+                        className="ml-auto text-[10px] bg-slate-800 hover:bg-slate-700 text-slate-200 px-2 py-0.5 rounded cursor-pointer font-sans"
+                      >
+                        Copy Domain
+                      </button>
+                    </div>
+                    <a
+                      href="https://console.firebase.google.com/project/gen-lang-client-0056967119/authentication/settings"
+                      target="_blank"
+                      rel="noreferrer"
+                      className="inline-flex items-center gap-1 text-teal-400 hover:text-teal-300 font-medium text-[11px] mt-1"
+                    >
+                      <span>Open Firebase Console &rarr; Auth &rarr; Settings &rarr; Authorized Domains</span>
+                      <ExternalLink className="w-3 h-3" />
+                    </a>
+                  </div>
+                )}
               </div>
             </div>
           )}
